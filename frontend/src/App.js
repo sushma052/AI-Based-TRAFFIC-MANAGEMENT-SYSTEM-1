@@ -6,23 +6,24 @@ function App() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [emergencyMessage, setEmergencyMessage] = useState("");
+  const [emergencyLane, setEmergencyLane] = useState("NORTH"); // default lane
 
   const handleFileChange = (e) => {
-    // Convert FileList to array and set to state
     setSelectedFiles(Array.from(e.target.files));
   };
 
   const handleSubmit = async (e) => {
-    setLoading(true);
     e.preventDefault();
-    // Ensure exactly 4 files are selected
+    setLoading(true);
+
     if (selectedFiles.length !== 4) {
       alert('Please upload exactly 4 videos.');
+      setLoading(false);
       return;
     }
 
     const formData = new FormData();
-    // Append all selected files to FormData
     selectedFiles.forEach(file => formData.append('videos', file));
 
     try {
@@ -30,68 +31,100 @@ function App() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setResult(response.data);
-      console.log(response);
-      setLoading(false);
     } catch (error) {
       console.error('Error uploading files:', error);
-      setLoading(false);
+    }
+    setLoading(false);
+  };
+
+  const handleEmergency = async () => {
+    try {
+      const response = await axios.post("http://localhost:5000/emergency", { lane: emergencyLane });
+      setEmergencyMessage(response.data?.message || `🚨 Emergency Vehicle in ${emergencyLane} lane! Priority for 10 seconds.`);
+      setTimeout(() => setEmergencyMessage(""), 10000);
+    } catch (error) {
+      console.error("Error activating emergency mode:", error);
     }
   };
 
   return (
     <div className="App">
       <h1>🚗 AI Based Traffic Management</h1>
-      <hr/>
+      <hr />
 
       <div className='main-container'>
         <div className='left'>
           <section id="hero" className="hero">
             <h2>🚦 Optimize Traffic Flow with AI 🤖</h2>
-            <p>Enhance your city's traffic management with our smart adaptive system. Our technology optimizes traffic light timings based on real-time data to reduce congestion and improve traffic flow.</p>
+            <p>Enhance your city's traffic management with our smart adaptive system.</p>
           </section>
+
           <section id="upload" className="upload">
             <h2>📹 Upload Your Traffic Videos</h2>
-            <p>Select 4 videos showing different roads at an intersection. Our system will analyze these videos to provide optimized traffic light timings for smoother traffic flow.</p>
             <form onSubmit={handleSubmit}>
-              <input 
-                type="file" 
-                multiple 
-                accept="video/*" 
-                onChange={handleFileChange} 
-              />
-              <br/>
+              <input type="file" multiple accept="video/*" onChange={handleFileChange} />
+              <br />
               <button type="submit">Run Model</button>
             </form>
+
+            {/* Emergency Vehicle Dropdown + Button */}
+            <div style={{ marginTop: "15px" }}>
+              <label>Select Emergency Lane: </label>
+              <select value={emergencyLane} onChange={(e) => setEmergencyLane(e.target.value)}>
+                <option value="NORTH">North</option>
+                <option value="SOUTH">South</option>
+                <option value="EAST">East</option>
+                <option value="WEST">West</option>
+              </select>
+            </div>
+
+            <button 
+              onClick={handleEmergency}
+              style={{ background: "red", color: "white", padding: "10px", marginTop: "10px" }}
+            >
+              🚨 Activate Emergency Vehicle
+            </button>
+
+            {emergencyMessage && (
+              <div style={{
+                background: "yellow",
+                color: "red",
+                padding: "10px",
+                fontWeight: "bold",
+                border: "2px solid red",
+                marginTop: "15px"
+              }}>
+                {emergencyMessage}
+              </div>
+            )}
           </section>
         </div>
 
         <section id="result" className="result">
-          {!loading && !result && (
-            <p className='placeholder'>Optimization results will show here <br/><span>🚦🚦🚦🚦</span></p>
-          )}
+          {!loading && !result && <p className='placeholder'>Optimization results will show here 🚦🚦🚦🚦</p>}
           {loading && <p className='loader'>Processing videos, it may take a few minutes...</p>}
           {result && !result.error && (
             <>
               <h2>✅ Optimization Results</h2>
-              <p>Your traffic light timings have been optimized. Here are the recommended green times for each direction:</p>
               <ul>
-                <li>🚦 North: <span id="north-time">{result.north}</span> seconds</li>
-                <li>🚦 South: <span id="south-time">{result.south}</span> seconds</li>
-                <li>🚦 West: <span id="west-time">{result.west}</span> seconds</li>
-                <li>🚦 East: <span id="east-time">{result.east}</span> seconds</li>
+                <li>🟢West: {result.west} seconds</li>
+                <li>🟢North: {result.north} seconds</li>
+                <li>🟢South: {result.south} seconds</li>
+                <li>🟢East: {result.east} seconds</li>
               </ul>
             </>
           )}
+          {result && result.error && (
+            <div>
+              <h2>Error:</h2>
+              <p>{result.error}</p>
+            </div>
+          )}
         </section>
-        {result && result.error && (
-          <div>
-            <h2>Error:</h2>
-            <p>{result.error}</p>
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
 export default App;
+
