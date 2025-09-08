@@ -9,6 +9,9 @@ function App() {
   const [emergencyMessage, setEmergencyMessage] = useState("");
   const [emergencyLane, setEmergencyLane] = useState("NORTH"); // default lane
 
+  // ✅ Use environment variable for API URL
+  const API_URL = process.env.REACT_APP_API_URL;
+
   const handleFileChange = (e) => {
     setSelectedFiles(Array.from(e.target.files));
   };
@@ -27,7 +30,7 @@ function App() {
     selectedFiles.forEach(file => formData.append('videos', file));
 
     try {
-      const response = await axios.post('http://localhost:5000/emergency', formData, {
+      const response = await axios.post(`${API_URL}/emergency`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setResult(response.data);
@@ -39,8 +42,10 @@ function App() {
 
   const handleEmergency = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/emergency", { lane: emergencyLane });
-      setEmergencyMessage(response.data?.message || `🚨 Emergency Vehicle in ${emergencyLane} lane! Priority for 10 seconds.`);
+      const response = await axios.post(`${API_URL}/emergency`, { lane: emergencyLane });
+      setEmergencyMessage(
+        response.data?.message || `🚨 Emergency Vehicle in ${emergencyLane} lane! Priority for 10 seconds.`
+      );
       setTimeout(() => setEmergencyMessage(""), 10000);
     } catch (error) {
       console.error("Error activating emergency mode:", error);
@@ -78,7 +83,7 @@ function App() {
               </select>
             </div>
 
-            <button 
+            <button
               onClick={handleEmergency}
               style={{ background: "red", color: "white", padding: "10px", marginTop: "10px" }}
             >
@@ -127,4 +132,3 @@ function App() {
 }
 
 export default App;
-
