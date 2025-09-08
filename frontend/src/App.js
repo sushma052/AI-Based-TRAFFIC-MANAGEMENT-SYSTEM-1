@@ -39,7 +39,7 @@ function App() {
 
   const handleEmergency = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/emergency", { lane: emergencyLane });
+      const response = await axios.post("https://backend-o8zb.onrender.com", { lane: emergencyLane });
       setEmergencyMessage(response.data?.message || `🚨 Emergency Vehicle in ${emergencyLane} lane! Priority for 10 seconds.`);
       setTimeout(() => setEmergencyMessage(""), 10000);
     } catch (error) {
