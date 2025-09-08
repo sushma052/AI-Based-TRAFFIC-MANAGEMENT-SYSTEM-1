@@ -27,7 +27,7 @@ function App() {
     selectedFiles.forEach(file => formData.append('videos', file));
 
     try {
-      const response = await axios.post('https://my-backend.onrender.com', formData, {
+      const response = await axios.post('https://backend-o8zb.onrender.com', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setResult(response.data);
