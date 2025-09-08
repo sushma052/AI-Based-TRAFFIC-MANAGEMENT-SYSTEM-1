@@ -27,7 +27,7 @@ function App() {
     selectedFiles.forEach(file => formData.append('videos', file));
 
     try {
-      const response = await axios.post('https://backend-o8zb.onrender.com', formData, {
+      const response = await axios.post('http://localhost:5000/emergency', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setResult(response.data);
@@ -39,7 +39,7 @@ function App() {
 
   const handleEmergency = async () => {
     try {
-      const response = await axios.post("https://backend-o8zb.onrender.com", { lane: emergencyLane });
+      const response = await axios.post("http://localhost:5000/emergency", { lane: emergencyLane });
       setEmergencyMessage(response.data?.message || `🚨 Emergency Vehicle in ${emergencyLane} lane! Priority for 10 seconds.`);
       setTimeout(() => setEmergencyMessage(""), 10000);
     } catch (error) {
